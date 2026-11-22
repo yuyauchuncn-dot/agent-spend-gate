@@ -103,7 +103,11 @@ def _confirm_dialog(t: i18n.Translator, amount: float, currency: str,
     ok_label = t("dialog_approve")
     no_label = t("dialog_cancel")
     once_label = t("approve_once")
-    period_label = t("approve_period", period=t(f"period_{breaches[0].period}")) if breaches else ""
+    # 不能用 "Allow for this {period}" 拼：period_day 的值是 "daily"，
+    # 拼出来是 "Allow for this daily"；中文会变成「本每日都放行」。
+    # 每个周期一句完整文案。
+    period_key = breaches[0].period.split(":")[0] if breaches else ""
+    period_label = t(f"allow_{period_key}") if breaches else ""
     if breaches:
         buttons = [no_label, once_label, period_label]
         default = no_label

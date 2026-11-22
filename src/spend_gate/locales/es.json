@@ -17,9 +17,11 @@
   "hard_limit_title": "Límite de presupuesto estricto",
   "hard_limit_body": "{vendor} solicita {amount} {currency} para: {purpose}\n\nEsto supera tu límite {period} estricto:\n{detail}\n\nAprobar registra una excepción en el registro de auditoría y la tarea continúa.",
   "approve_once": "Solo esta vez",
-  "approve_period": "Permitir por este {period}",
   "auth_reason_policy": "Cambiar la política de gasto aprobado automáticamente",
   "envelope_cap_note": "(tope; el total real puede ser menor)",
   "envelope_cap_qty": "hasta este importe",
-  "limit_detail": "{period}: {spent:.2f} + {pending:.2f} = {total:.2f} > {limit:.2f}"
+  "limit_detail": "{period}: {spent:.2f} + {pending:.2f} = {total:.2f} > {limit:.2f}",
+  "allow_day": "Permitir por hoy",
+  "allow_week": "Permitir por esta semana",
+  "allow_month": "Permitir por este mes"
 }

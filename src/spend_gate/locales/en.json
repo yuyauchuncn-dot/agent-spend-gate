@@ -17,9 +17,11 @@
   "hard_limit_title": "Hard budget limit",
   "hard_limit_body": "{vendor} requests {amount} {currency} for: {purpose}\n\nThis exceeds your {period} hard limit:\n{detail}\n\nApproving records an exception in the audit log and lets the job continue.",
   "approve_once": "Just this once",
-  "approve_period": "Allow for this {period}",
   "auth_reason_policy": "Change the auto-approve spending policy",
   "envelope_cap_note": "(cap; the actual total may be lower)",
   "envelope_cap_qty": "up to this amount",
-  "limit_detail": "{period}: {spent:.2f} + {pending:.2f} = {total:.2f} > {limit:.2f}"
+  "limit_detail": "{period}: {spent:.2f} + {pending:.2f} = {total:.2f} > {limit:.2f}",
+  "allow_day": "Allow for today",
+  "allow_week": "Allow for this week",
+  "allow_month": "Allow for this month"
 }

@@ -17,9 +17,11 @@
   "hard_limit_title": "Hartes Budgetlimit",
   "hard_limit_body": "{vendor} fordert {amount} {currency} an für: {purpose}\n\nDies überschreitet dein hartes {period}-Limit:\n{detail}\n\nEine Genehmigung wird als Ausnahme protokolliert und der Auftrag läuft weiter.",
   "approve_once": "Nur dieses Mal",
-  "approve_period": "Für diesen {period} erlauben",
   "auth_reason_policy": "Richtlinie für automatisch genehmigte Ausgaben ändern",
   "envelope_cap_note": "(Obergrenze; die tatsächliche Summe kann niedriger sein)",
   "envelope_cap_qty": "bis zu diesem Betrag",
-  "limit_detail": "{period}: {spent:.2f} + {pending:.2f} = {total:.2f} > {limit:.2f}"
+  "limit_detail": "{period}: {spent:.2f} + {pending:.2f} = {total:.2f} > {limit:.2f}",
+  "allow_day": "Für heute erlauben",
+  "allow_week": "Für diese Woche erlauben",
+  "allow_month": "Für diesen Monat erlauben"
 }

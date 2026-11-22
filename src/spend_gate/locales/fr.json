@@ -17,9 +17,11 @@
   "hard_limit_title": "Plafond budgétaire strict",
   "hard_limit_body": "{vendor} demande {amount} {currency} pour : {purpose}\n\nCela dépasse votre plafond {period} strict :\n{detail}\n\nAutoriser enregistre une exception dans le journal d'audit et laisse la tâche continuer.",
   "approve_once": "Cette fois seulement",
-  "approve_period": "Autoriser pour ce {period}",
   "auth_reason_policy": "Modifier la politique de dépense auto-autorisée",
   "envelope_cap_note": "(plafond ; le total réel peut être inférieur)",
   "envelope_cap_qty": "jusqu'à ce montant",
-  "limit_detail": "{period} : {spent:.2f} + {pending:.2f} = {total:.2f} > {limit:.2f}"
+  "limit_detail": "{period} : {spent:.2f} + {pending:.2f} = {total:.2f} > {limit:.2f}",
+  "allow_day": "Autoriser pour aujourd'hui",
+  "allow_week": "Autoriser pour cette semaine",
+  "allow_month": "Autoriser pour ce mois"
 }
