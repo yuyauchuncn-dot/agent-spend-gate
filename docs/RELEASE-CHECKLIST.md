@@ -87,7 +87,12 @@ SPEND_GATE_BYPASS=true spend-gate approve --amount 1     # NOT bypassed (only li
 - [ ] Cancel the fingerprint prompt → same
 - ✅ `--amount -5`, `nan`, `inf`, `True`, `"2"` → `ValueError`
 - ✅ `SPEND_GATE_BYPASS=true` is not treated as bypass (only literal `"1"` is)
-- [ ] Over a limit with `hard_limit` off → three-button dialog; "Allow for this period" suppresses later prompts
+- ✅ Over a limit with `hard_limit` off → three-button dialog appeared.
+  Choosing **Allow for this day** wrote the waiver `{'day'}`, the audit entry
+  carried `over_limit` and `waived_periods`, and the next charge no longer
+  reported an overrun (plain two-button dialog, no `over_limit` in the audit).
+  The *Just this once* and *Cancel* branches are covered by unit tests only —
+  each costs another fingerprint to test by hand.
 - [ ] Over a limit with `hard_limit` on → same dialog, `hard_override` in the audit
 - [ ] Lock the Keychain, then `spend-gate verify` → reports the anchor as unchecked rather than passing silently
 - ✅ `verify` passes on a real ledger after live approvals
