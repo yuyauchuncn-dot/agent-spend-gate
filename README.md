@@ -112,7 +112,18 @@ day: 18.00 + 5.00 = 23.00 > 20.00
 Approve anyway?
 ```
 
-Approving is recorded in the audit log with an `over_limit` field, so you get both the override and the trail. Add `--hard-limit` if you would rather have it refused outright — useful for unattended services where nobody is there to approve. Each one is written to the ledger, so the daily cap is enforced from the same numbers you can audit. Changing the policy requires Touch ID or your password — an agent cannot raise its own limit. The policy file is HMAC-signed with a key held in your login Keychain — editing the JSON by hand invalidates the signature, and an invalid signature means **nothing** is auto-approved.
+Approving is recorded in the audit log with an `over_limit` field, so you get both the override and the trail.
+
+The limit dialog has three buttons: **Just this once**, **Allow for this day**, or **Cancel**. Choosing "allow for this period" writes a waiver that lasts until the period ends, so a long job keeps running instead of stopping at every file.
+
+### Per-vendor limits and a whitelist
+
+```bash
+spend-gate policy set --vendor dashscope --vendor-daily-limit 5 --vendor-trusted
+spend-gate policy set --vendor openai --vendor-daily-limit 20
+```
+
+`--vendor` takes a prefix, longest match wins, so `dashscope/wanx2.1-t2i` is covered by `dashscope`. A **trusted** vendor skips the dialog while it stays inside both its own limit and the global ones — it removes the interruption, not the ceiling. Everything else still prompts. Each one is written to the ledger, so the daily cap is enforced from the same numbers you can audit. Changing the policy requires Touch ID or your password — an agent cannot raise its own limit. The policy file is HMAC-signed with a key held in your login Keychain — editing the JSON by hand invalidates the signature, and an invalid signature means **nothing** is auto-approved.
 
 ## Environment variables
 

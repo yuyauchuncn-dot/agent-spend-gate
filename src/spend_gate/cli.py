@@ -79,6 +79,17 @@ def cmd_policy(a):
         p.monthly_limit = a.monthly_limit
     if a.hard_limit is not None:
         p.hard_limit = a.hard_limit
+    if a.vendor:
+        cfg = dict(p.vendors.get(a.vendor) or {})
+        if a.vendor_daily_limit is not None:
+            cfg["daily_limit"] = a.vendor_daily_limit
+        if a.vendor_weekly_limit is not None:
+            cfg["weekly_limit"] = a.vendor_weekly_limit
+        if a.vendor_monthly_limit is not None:
+            cfg["monthly_limit"] = a.vendor_monthly_limit
+        if a.vendor_trusted is not None:
+            cfg["trusted"] = a.vendor_trusted
+        p.vendors[a.vendor] = cfg
     if a.currency:
         p.currency = a.currency
     try:
@@ -145,6 +156,13 @@ def main(argv=None):
     po.add_argument("--hard-limit", type=lambda v: v.lower() in ("1", "true", "yes"),
                     default=None,
                     help="block instead of asking when a period limit is exceeded")
+    po.add_argument("--vendor", default=None,
+                    help="configure limits for one vendor prefix (e.g. dashscope)")
+    po.add_argument("--vendor-daily-limit", type=float, default=None)
+    po.add_argument("--vendor-weekly-limit", type=float, default=None)
+    po.add_argument("--vendor-monthly-limit", type=float, default=None)
+    po.add_argument("--vendor-trusted", type=lambda v: v.lower() in ("1", "true", "yes"),
+                    default=None, help="skip prompts for this vendor while within limits")
     po.add_argument("--currency", default=None)
     po.set_defaults(func=cmd_policy)
 

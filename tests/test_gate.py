@@ -28,7 +28,7 @@ def read_audit(p):
 
 
 def test_both_gates_pass(tmp_audit, monkeypatch):
-    monkeypatch.setattr(gate, "_confirm_dialog", lambda *a, **k: True)
+    monkeypatch.setattr(gate, "_confirm_dialog", lambda *a, **k: "once")
     monkeypatch.setattr(gate.auth, "authenticate", lambda *a, **k: AuthResult(True, "unknown"))
     approval = gate.require_approval(1.5, vendor="openai/gpt-4o", purpose="test",
                                      quantity="1 call")
@@ -39,7 +39,7 @@ def test_both_gates_pass(tmp_audit, monkeypatch):
 
 
 def test_dialog_cancel_denies(tmp_audit, monkeypatch):
-    monkeypatch.setattr(gate, "_confirm_dialog", lambda *a, **k: False)
+    monkeypatch.setattr(gate, "_confirm_dialog", lambda *a, **k: "cancel")
     with pytest.raises(gate.SpendNotApproved) as e:
         gate.require_approval(1.0)
     assert e.value.reason == "cancelled"
@@ -47,7 +47,7 @@ def test_dialog_cancel_denies(tmp_audit, monkeypatch):
 
 
 def test_auth_cancel_denies(tmp_audit, monkeypatch):
-    monkeypatch.setattr(gate, "_confirm_dialog", lambda *a, **k: True)
+    monkeypatch.setattr(gate, "_confirm_dialog", lambda *a, **k: "once")
     monkeypatch.setattr(gate.auth, "authenticate",
                         lambda *a, **k: AuthResult(False, "unknown", "cancelled"))
     with pytest.raises(gate.SpendNotApproved):
@@ -56,7 +56,7 @@ def test_auth_cancel_denies(tmp_audit, monkeypatch):
 
 
 def test_auth_unavailable_denies(tmp_audit, monkeypatch):
-    monkeypatch.setattr(gate, "_confirm_dialog", lambda *a, **k: True)
+    monkeypatch.setattr(gate, "_confirm_dialog", lambda *a, **k: "once")
     monkeypatch.setattr(gate.auth, "authenticate",
                         lambda *a, **k: AuthResult(False, "unknown", "unavailable"))
     with pytest.raises(gate.SpendNotApproved):
@@ -73,7 +73,7 @@ def test_non_macos_denies(tmp_audit, monkeypatch):
 
 def test_bypass_only_literal_one(tmp_audit, monkeypatch):
     monkeypatch.setenv("SPEND_GATE_BYPASS", "true")
-    monkeypatch.setattr(gate, "_confirm_dialog", lambda *a, **k: False)
+    monkeypatch.setattr(gate, "_confirm_dialog", lambda *a, **k: "cancel")
     with pytest.raises(gate.SpendNotApproved):
         gate.require_approval(1.0)
     monkeypatch.setenv("SPEND_GATE_BYPASS", "1")
@@ -83,15 +83,17 @@ def test_bypass_only_literal_one(tmp_audit, monkeypatch):
 
 
 def test_audit_write_failure_blocks_approval(tmp_audit, monkeypatch):
-    monkeypatch.setattr(gate, "_confirm_dialog", lambda *a, **k: True)
+    monkeypatch.setattr(gate, "_confirm_dialog", lambda *a, **k: "once")
     monkeypatch.setattr(gate.auth, "authenticate", lambda *a, **k: AuthResult(True, "unknown"))
 
     def boom(*a, **k):
         raise gate.audit.AuditWriteError("disk full")
 
     monkeypatch.setattr(gate.audit, "record", boom)
-    with pytest.raises(gate.audit.AuditWriteError):
+    # 契约：调用方只 catch SpendNotApproved 也必须是安全的。
+    with pytest.raises(gate.SpendNotApproved) as e:
         gate.require_approval(1.0)
+    assert e.value.reason == "audit_failed"
 
 
 @pytest.mark.parametrize("bad", [-1, float("nan"), float("inf"), True, "2"])

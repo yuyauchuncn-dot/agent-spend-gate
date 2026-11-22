@@ -13,5 +13,9 @@
   "limit_blocked": "已阻止：这笔花费会超出{period}限额，且已启用硬性限制。",
   "period_day": "每日",
   "period_week": "每周",
-  "period_month": "每月"
+  "period_month": "每月",
+  "hard_limit_title": "硬性预算上限",
+  "hard_limit_body": "{vendor} 请求花费 {amount} {currency}，用途：{purpose}\n\n这会超出你的{period}硬性上限：\n{detail}\n\n批准会在审计日志里记为例外，任务可以继续。",
+  "approve_once": "只批这一次",
+  "approve_period": "本{period}都放行"
 }

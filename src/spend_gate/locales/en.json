@@ -13,5 +13,9 @@
   "limit_blocked": "Blocked: this would exceed the {period} limit and hard limits are enabled.",
   "period_day": "daily",
   "period_week": "weekly",
-  "period_month": "monthly"
+  "period_month": "monthly",
+  "hard_limit_title": "Hard budget limit",
+  "hard_limit_body": "{vendor} requests {amount} {currency} for: {purpose}\n\nThis exceeds your {period} hard limit:\n{detail}\n\nApproving records an exception in the audit log and lets the job continue.",
+  "approve_once": "Just this once",
+  "approve_period": "Allow for this {period}"
 }

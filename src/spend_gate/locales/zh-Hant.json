@@ -13,5 +13,9 @@
   "limit_blocked": "已阻止：這筆花費會超出{period}限額，且已啟用硬性限制。",
   "period_day": "每日",
   "period_week": "每週",
-  "period_month": "每月"
+  "period_month": "每月",
+  "hard_limit_title": "硬性預算上限",
+  "hard_limit_body": "{vendor} 請求花費 {amount} {currency}，用途：{purpose}\n\n這會超出你的{period}硬性上限：\n{detail}\n\n批准會在審計日誌裡記為例外，任務可以繼續。",
+  "approve_once": "只批這一次",
+  "approve_period": "本{period}都放行"
 }

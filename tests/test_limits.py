@@ -65,13 +65,33 @@ def test_unsigned_policy_ignores_limits(tmp_path):
     assert policy.can_auto_approve(0.001) is False
 
 
-def test_hard_limit_blocks(monkeypatch):
+def test_hard_limit_still_asks(monkeypatch, tmp_path):
+    """硬上限也弹窗，批准后记 hard_override，而不是静默失败。"""
     policy.save(policy.Policy(daily_limit=0.10, hard_limit=True), require_auth=False)
     spend_via_ledger(0.08)
-    monkeypatch.setattr(gate, "_confirm_dialog", lambda *a, **k: True)
-    with pytest.raises(gate.SpendNotApproved) as e:
+    seen = {}
+
+    def fake_dialog(t, amount, currency, vendor, purpose, quantity, breaches=None, hard=False):
+        seen["hard"] = hard
+        return "once"
+
+    monkeypatch.setattr(gate, "_confirm_dialog", fake_dialog)
+    ap = gate.require_approval(0.05, vendor="openai", purpose="job")
+    assert ap.amount == 0.05 and seen["hard"] is True
+    rows = [json.loads(x) for x in
+            open(tmp_path / "audit.jsonl", encoding="utf-8").read().splitlines()]
+    assert rows[-1]["hard_override"] is True
+
+
+def test_hard_limit_cancel_denies(monkeypatch, tmp_path):
+    policy.save(policy.Policy(daily_limit=0.10, hard_limit=True), require_auth=False)
+    spend_via_ledger(0.08)
+    monkeypatch.setattr(gate, "_confirm_dialog", lambda *a, **k: "cancel")
+    with pytest.raises(gate.SpendNotApproved):
         gate.require_approval(0.05)
-    assert e.value.reason == "limit"
+    rows = [json.loads(x) for x in
+            open(tmp_path / "audit.jsonl", encoding="utf-8").read().splitlines()]
+    assert rows[-1]["result"] == "denied"
 
 
 def test_soft_limit_asks_then_allows(monkeypatch, tmp_path):
@@ -79,9 +99,9 @@ def test_soft_limit_asks_then_allows(monkeypatch, tmp_path):
     spend_via_ledger(0.08)
     seen = {}
 
-    def fake_dialog(t, amount, currency, vendor, purpose, quantity, breaches=None):
+    def fake_dialog(t, amount, currency, vendor, purpose, quantity, breaches=None, hard=False):
         seen["breaches"] = breaches
-        return True
+        return "once"
 
     monkeypatch.setattr(gate, "_confirm_dialog", fake_dialog)
     ap = gate.require_approval(0.05, vendor="openai", purpose="test")
@@ -96,7 +116,7 @@ def test_soft_limit_asks_then_allows(monkeypatch, tmp_path):
 def test_soft_limit_cancel_denies(monkeypatch, tmp_path):
     policy.save(policy.Policy(daily_limit=0.10), require_auth=False)
     spend_via_ledger(0.08)
-    monkeypatch.setattr(gate, "_confirm_dialog", lambda *a, **k: False)
+    monkeypatch.setattr(gate, "_confirm_dialog", lambda *a, **k: "cancel")
     with pytest.raises(gate.SpendNotApproved):
         gate.require_approval(0.05)
     rows = [json.loads(x) for x in

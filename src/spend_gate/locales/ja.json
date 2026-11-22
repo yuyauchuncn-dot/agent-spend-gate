@@ -13,5 +13,9 @@
   "limit_blocked": "ブロックしました：{period}の上限を超えるため、ハードリミットが有効です。",
   "period_day": "1日",
   "period_week": "1週間",
-  "period_month": "1か月"
+  "period_month": "1か月",
+  "hard_limit_title": "ハード上限",
+  "hard_limit_body": "{vendor} が {amount} {currency} の支払いを要求しています。用途：{purpose}\n\n{period}のハード上限を超えます：\n{detail}\n\n承認すると監査ログに例外として記録され、処理を続行できます。",
+  "approve_once": "今回だけ",
+  "approve_period": "この{period}は許可"
 }

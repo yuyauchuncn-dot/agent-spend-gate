@@ -235,6 +235,7 @@ def open_envelope(max_amount: float, currency: str = "CNY", vendor: str = "",
         amount=max_amount, currency=currency, vendor=vendor,
         purpose=f"{purpose} (cap, actual total may be lower)".strip(),
         quantity="up to this amount", timeout=timeout,
+        record_ledger=False,   # 信封自己记实际花费，这里记 cap 会双重记账
     )
     env = Envelope(
         id=uuid.uuid4().hex[:16],

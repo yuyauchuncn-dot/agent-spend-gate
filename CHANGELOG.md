@@ -1,6 +1,21 @@
 # Changelog
 
-## 0.4.0 — 2026-11-22
+## 0.5.0 — 2026-11-22
+
+- **Per-vendor limits**: `--vendor dashscope --vendor-daily-limit 5`, prefix-matched with longest match winning.
+- **Vendor whitelist**: `--vendor-trusted` skips the dialog for that vendor while it stays inside its own and the global ceilings. It removes the interruption, not the limit.
+- **Period waiver**: the limit dialog gains "Allow for this day/week/month", so an approved long job keeps running instead of prompting at every charge. Waivers expire with the period.
+- 64 tests.
+
+## 0.4.1 — 2026-11-22
+
+Fixes from a second review.
+
+- Auto-approved charges no longer skip the global ceilings: a stream of tiny auto-approved calls could previously spend past a hard limit.
+- Manually approved charges are written to the ledger. Without this the ceilings were blind to the largest spends.
+- `AuditWriteError` is wrapped in `SpendNotApproved`, so callers that only catch that exception do not crash on an unwritable audit log.
+- Opening an envelope no longer double-counts its cap as a spend.
+- 0.4.0
 
 - **Daily, weekly and monthly ceilings** across all spending, independent of envelopes. Previously an agent could open any number of envelopes and never hit a total limit.
 - Crossing a ceiling opens a distinct dialog that shows what was already spent, the pending charge, and the resulting total. Approving it is recorded with an `over_limit` field rather than silently allowed.
