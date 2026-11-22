@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0 — 2026-11-22
+
+- `spend-gate policy load policy.json` — apply a whole policy in one call, so a whitelist for five vendors costs one fingerprint instead of five.
+- New skill in `skill/`: scans a repository for paid API calls, asks which vendors should stay behind a prompt, writes the policy, and wraps the call sites. Tested against a real 215-call repository.
+- README rewritten around the three spending modes and the one thing that actually matters: an unwrapped call is unprotected and nothing tells you.
+
 ## 0.6.0 — 2026-11-22
 
 - **Korean, German, French and Spanish** locales, alongside the existing English, Simplified Chinese, Traditional Chinese and Japanese. Cantonese maps to Traditional Chinese.

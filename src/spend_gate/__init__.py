@@ -14,4 +14,4 @@ from . import auth, budget, i18n
 
 __all__ = ["require_approval", "Approval", "SpendNotApproved", "BudgetExceeded",
            "Envelope", "open_envelope", "verify_ledger", "auth", "budget", "i18n"]
-__version__ = "0.6.0"
+__version__ = "0.7.0"

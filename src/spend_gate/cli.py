@@ -101,6 +101,27 @@ def cmd_policy(a):
     return 0
 
 
+def cmd_policy_load(a):
+    """从 JSON 批量载入策略。只认证一次——白名单一次配完的入口。"""
+    try:
+        data = json.load(open(a.file, encoding="utf-8"))
+    except Exception as e:
+        print(f"cannot read {a.file}: {e}", file=sys.stderr)
+        return 1
+    allowed = {f for f in policy.Policy.__dataclass_fields__}
+    unknown = set(data) - allowed
+    if unknown:
+        print(f"unknown keys ignored: {', '.join(sorted(unknown))}", file=sys.stderr)
+    p = policy.Policy(**{k: v for k, v in data.items() if k in allowed})
+    try:
+        policy.save(p)
+    except policy.PolicyNotApproved as e:
+        print(f"not changed: {e}", file=sys.stderr)
+        return 1
+    print(json.dumps(p.__dict__, ensure_ascii=False, indent=1))
+    return 0
+
+
 def cmd_audit(a):
     path = audit.audit_path()
     if not os.path.exists(path):
@@ -144,7 +165,8 @@ def main(argv=None):
     en.set_defaults(func=cmd_envelope)
 
     po = sub.add_parser("policy", help="show or set the auto-approve policy")
-    po.add_argument("action", choices=["show", "set"])
+    po.add_argument("action", choices=["show", "set", "load"])
+    po.add_argument("file", nargs="?", default="", help="JSON file for 'load'")
     po.add_argument("--auto-under", type=float, default=None,
                     help="auto-approve single charges at or below this amount (0 disables)")
     po.add_argument("--daily-cap", type=float, default=None,
@@ -171,6 +193,9 @@ def main(argv=None):
     au.set_defaults(func=cmd_audit)
 
     a = p.parse_args(argv)
+    if a.cmd == "policy" and a.action == "load" and not a.file:
+        print("usage: spend-gate policy load <file.json>", file=sys.stderr)
+        return 2
     return a.func(a)
 
 
