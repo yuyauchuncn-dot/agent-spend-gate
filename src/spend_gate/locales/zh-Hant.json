@@ -7,5 +7,11 @@
   "denied_cancelled": "花費已取消。",
   "denied_unavailable": "這台機器無法進行系統身份驗證。",
   "denied_timeout": "身份驗證逾時。",
-  "denied_error": "身份驗證失敗。"
+  "denied_error": "身份驗證失敗。",
+  "over_limit_title": "已達預算上限",
+  "over_limit_body": "{vendor} 請求花費 {amount} {currency}，用途：{purpose}\n\n這會超出你的{period}限額：\n{detail}\n\n仍然批准嗎？",
+  "limit_blocked": "已阻止：這筆花費會超出{period}限額，且已啟用硬性限制。",
+  "period_day": "每日",
+  "period_week": "每週",
+  "period_month": "每月"
 }

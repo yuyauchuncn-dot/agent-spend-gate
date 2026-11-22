@@ -7,5 +7,11 @@
   "denied_cancelled": "支払いはキャンセルされました。",
   "denied_unavailable": "このマシンではシステム認証を利用できません。",
   "denied_timeout": "認証がタイムアウトしました。",
-  "denied_error": "認証に失敗しました。"
+  "denied_error": "認証に失敗しました。",
+  "over_limit_title": "予算上限に達しました",
+  "over_limit_body": "{vendor} が {amount} {currency} の支払いを要求しています。用途：{purpose}\n\n{period}の上限を超えます：\n{detail}\n\nそれでも承認しますか？",
+  "limit_blocked": "ブロックしました：{period}の上限を超えるため、ハードリミットが有効です。",
+  "period_day": "1日",
+  "period_week": "1週間",
+  "period_month": "1か月"
 }

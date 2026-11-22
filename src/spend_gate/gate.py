@@ -76,13 +76,26 @@ def _applescript_string(s: str) -> str:
 
 
 def _confirm_dialog(t: i18n.Translator, amount: float, currency: str,
-                    vendor: str, purpose: str, quantity: str) -> bool:
-    """第一道闸：认知确认。默认按钮是取消，防止盲按回车。"""
-    body = t("dialog_body", vendor=vendor, amount=amount, currency=currency,
-             purpose=purpose, quantity=quantity)
+                    vendor: str, purpose: str, quantity: str,
+                    breaches: list | None = None) -> bool:
+    """第一道闸：认知确认。默认按钮是取消，防止盲按回车。
+
+    breaches 非空时换成「超限」文案：把人已经花了多少、限额多少、
+    这一笔加上去会变成多少，一次性摆出来。
+    """
+    if breaches:
+        b = breaches[0]   # 只显示最先击穿的那个周期，多个时用最紧的
+        pd = t(f"period_{b.period}")
+        body = t("over_limit_body", vendor=vendor, amount=amount, currency=currency,
+                 purpose=purpose, period=pd,
+                 detail="; ".join(x.describe() for x in breaches))
+        title = t("over_limit_title")
+    else:
+        body = t("dialog_body", vendor=vendor, amount=amount, currency=currency,
+                 purpose=purpose, quantity=quantity)
+        title = t("dialog_title")
     ok_label = t("dialog_approve")
     no_label = t("dialog_cancel")
-    title = t("dialog_title")
     script = (
         f'display dialog "{_applescript_string(body)}" '
         f'buttons {{"{_applescript_string(no_label)}", "{_applescript_string(ok_label)}"}} '
@@ -130,7 +143,15 @@ def require_approval(amount, currency: str = "CNY", vendor: str = "",
                       "detail": "not macOS"}, strict=False)
         raise SpendNotApproved(t("denied_unavailable"), "unavailable")
 
-    if not _confirm_dialog(t, amount, currency, vendor, purpose, quantity):
+    # 周期限额。超了就换个弹窗文案让人决定；开了 hard_limit 就直接拒。
+    breaches = policy.check_limits(amount, currency)
+    if breaches and policy.hard_limit_enabled():
+        audit.record({**base, "result": "denied", "method": "unknown",
+                      "detail": f"hard limit: {breaches[0].describe()}"}, strict=False)
+        raise SpendNotApproved(
+            t("limit_blocked", period=t(f"period_{breaches[0].period}")), "limit")
+
+    if not _confirm_dialog(t, amount, currency, vendor, purpose, quantity, breaches):
         audit.record({**base, "result": "denied", "method": "unknown",
                       "detail": "dialog cancelled"}, strict=False)
         raise SpendNotApproved(t("denied_cancelled"), "cancelled")
@@ -145,6 +166,8 @@ def require_approval(amount, currency: str = "CNY", vendor: str = "",
         raise SpendNotApproved(t(key), res.reason)
 
     # 批准路径：审计写不进去就不放行，杜绝「花了钱没记录」。
+    if breaches:
+        base["over_limit"] = [b.describe() for b in breaches]
     audit.record({**base, "result": "approved", "method": res.method}, strict=True)
     return Approval(id=aid, ts=_now_iso(), amount=amount, currency=currency, vendor=vendor,
                     purpose=purpose, quantity=quantity, method=res.method)

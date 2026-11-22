@@ -71,9 +71,21 @@ def cmd_policy(a):
         p.auto_approve_under = a.auto_under
     if a.daily_cap is not None:
         p.daily_cap = a.daily_cap
+    if a.daily_limit is not None:
+        p.daily_limit = a.daily_limit
+    if a.weekly_limit is not None:
+        p.weekly_limit = a.weekly_limit
+    if a.monthly_limit is not None:
+        p.monthly_limit = a.monthly_limit
+    if a.hard_limit is not None:
+        p.hard_limit = a.hard_limit
     if a.currency:
         p.currency = a.currency
-    policy.save(p)
+    try:
+        policy.save(p)          # 会弹系统认证
+    except policy.PolicyNotApproved as e:
+        print(f"not changed: {e}", file=sys.stderr)
+        return 1
     print(json.dumps(p.__dict__, ensure_ascii=False, indent=1))
     return 0
 
@@ -126,6 +138,13 @@ def main(argv=None):
                     help="auto-approve single charges at or below this amount (0 disables)")
     po.add_argument("--daily-cap", type=float, default=None,
                     help="max total auto-approved spend per day (0 = unlimited)")
+    po.add_argument("--daily-limit", type=float, default=None,
+                    help="hard ceiling for all spend per day (0 = no limit)")
+    po.add_argument("--weekly-limit", type=float, default=None)
+    po.add_argument("--monthly-limit", type=float, default=None)
+    po.add_argument("--hard-limit", type=lambda v: v.lower() in ("1", "true", "yes"),
+                    default=None,
+                    help="block instead of asking when a period limit is exceeded")
     po.add_argument("--currency", default=None)
     po.set_defaults(func=cmd_policy)
 

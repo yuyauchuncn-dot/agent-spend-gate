@@ -7,5 +7,11 @@
   "denied_cancelled": "Spending was cancelled.",
   "denied_unavailable": "System authentication is not available on this machine.",
   "denied_timeout": "Authentication timed out.",
-  "denied_error": "Authentication failed."
+  "denied_error": "Authentication failed.",
+  "over_limit_title": "Budget limit reached",
+  "over_limit_body": "{vendor} requests {amount} {currency} for: {purpose}\n\nThis would exceed your {period} limit:\n{detail}\n\nApprove anyway?",
+  "limit_blocked": "Blocked: this would exceed the {period} limit and hard limits are enabled.",
+  "period_day": "daily",
+  "period_week": "weekly",
+  "period_month": "monthly"
 }

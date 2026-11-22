@@ -37,7 +37,11 @@ class PolicyNotApproved(RuntimeError):
 @dataclass
 class Policy:
     auto_approve_under: float = 0.0   # 0 = 关闭；>0 表示单笔不超过它就走免批
-    daily_cap: float = 0.0            # 0 = 不限制；>0 表示免批部分的当日总额
+    daily_cap: float = 0.0            # 0 = 不限制；>0 表示**免批部分**的当日总额
+    daily_limit: float = 0.0          # 0 = 不限制；全部花费的当日上限
+    weekly_limit: float = 0.0         # 0 = 不限制；周一起算
+    monthly_limit: float = 0.0        # 0 = 不限制；1 号起算
+    hard_limit: bool = False          # True = 超限直接拒绝，不给人批的机会
     currency: str = "CNY"
 
     @property
@@ -87,6 +91,60 @@ def load() -> tuple[Policy, bool]:
 def _today_start() -> float:
     t = time.localtime()
     return time.mktime((t.tm_year, t.tm_mon, t.tm_mday, 0, 0, 0, 0, 0, -1))
+
+
+def _week_start() -> float:
+    t = time.localtime()
+    monday = t.tm_mday - (t.tm_wday % 7)          # tm_wday: 周一=0
+    return time.mktime((t.tm_year, t.tm_mon, monday, 0, 0, 0, 0, 0, -1))
+
+
+def _month_start() -> float:
+    t = time.localtime()
+    return time.mktime((t.tm_year, t.tm_mon, 1, 0, 0, 0, 0, 0, -1))
+
+
+@dataclass(frozen=True)
+class LimitBreach:
+    """某笔花费会让哪个周期超限。spent 是花之前的累计。"""
+    period: str      # day | week | month
+    spent: float
+    limit: float
+    pending: float   # 本笔金额
+
+    @property
+    def total_after(self) -> float:
+        return self.spent + self.pending
+
+    def describe(self) -> str:
+        return (f"{self.period}: {self.spent:.2f} + {self.pending:.2f} = "
+                f"{self.total_after:.2f} > {self.limit:.2f}")
+
+
+def check_limits(amount: float, currency: str = "CNY") -> list[LimitBreach]:
+    """返回这笔花费会击穿的周期限额（可能多个）。空列表表示没超。"""
+    p, signed = load()
+    if not signed or p.currency != currency:
+        return []
+    from .ledger import default_ledger
+    led = default_ledger()
+    out = []
+    for period, start, limit in (
+        ("day", _today_start(), p.daily_limit),
+        ("week", _week_start(), p.weekly_limit),
+        ("month", _month_start(), p.monthly_limit),
+    ):
+        if limit <= 0:
+            continue
+        spent = led.totals(since=start, currency=currency)
+        if spent + amount > limit + 1e-9:
+            out.append(LimitBreach(period, spent, limit, amount))
+    return out
+
+
+def hard_limit_enabled() -> bool:
+    p, signed = load()
+    return signed and p.hard_limit
 
 
 def can_auto_approve(amount: float, currency: str = "CNY") -> bool:

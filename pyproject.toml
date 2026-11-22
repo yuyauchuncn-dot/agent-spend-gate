@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agent-spend-gate"
-version = "0.3.1"
+version = "0.4.0"
 description = "A human-in-the-loop spending gate for AI agents on macOS - no Touch ID or password approval, no paid API call."
 readme = "README.md"
 license = { text = "Apache-2.0" }

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0 — 2026-11-22
+
+- **Daily, weekly and monthly ceilings** across all spending, independent of envelopes. Previously an agent could open any number of envelopes and never hit a total limit.
+- Crossing a ceiling opens a distinct dialog that shows what was already spent, the pending charge, and the resulting total. Approving it is recorded with an `over_limit` field rather than silently allowed.
+- `hard_limit` refuses instead of asking, for unattended services.
+- `spend-gate policy set --daily-limit --weekly-limit --monthly-limit --hard-limit`.
+- 56 tests.
+
 ## 0.3.1 — 2026-11-22
 
 Security and correctness fixes from an external review.

@@ -92,7 +92,27 @@ Off by default. Turn it on deliberately:
 spend-gate policy set --auto-under 0.05 --daily-cap 1.00
 ```
 
-Now single charges at or below `0.05` pass without a prompt, as long as today's total spend stays under `1.00`. Each one is written to the ledger, so the daily cap is enforced from the same numbers you can audit. Changing the policy requires Touch ID or your password — an agent cannot raise its own limit. The policy file is HMAC-signed with a key held in your login Keychain — editing the JSON by hand invalidates the signature, and an invalid signature means **nothing** is auto-approved.
+Now single charges at or below `0.05` pass without a prompt, as long as today's total spend stays under `1.00`.
+
+### Ceilings you cannot quietly exceed
+
+```bash
+spend-gate policy set --daily-limit 20 --weekly-limit 80 --monthly-limit 200
+```
+
+These are period ceilings across **everything**, independent of envelopes — opening ten envelopes does not get around them. When a charge would cross one, the dialog changes:
+
+```
+Budget limit reached
+openai/gpt-4o requests 5.00 CNY for: batch job
+
+This would exceed your daily limit:
+day: 18.00 + 5.00 = 23.00 > 20.00
+
+Approve anyway?
+```
+
+Approving is recorded in the audit log with an `over_limit` field, so you get both the override and the trail. Add `--hard-limit` if you would rather have it refused outright — useful for unattended services where nobody is there to approve. Each one is written to the ledger, so the daily cap is enforced from the same numbers you can audit. Changing the policy requires Touch ID or your password — an agent cannot raise its own limit. The policy file is HMAC-signed with a key held in your login Keychain — editing the JSON by hand invalidates the signature, and an invalid signature means **nothing** is auto-approved.
 
 ## Environment variables
 
@@ -123,7 +143,8 @@ spend-gate policy show|set --auto-under 0.05 --daily-cap 1.00
 - v0.1 — two gates, audit trail, i18n
 - v0.2 — budget envelopes for batch spending, reserve/settle, hash-chained ledger (`spend-gate verify`)
 - v0.3 — Keychain-anchored ledger head, per-call auto-approve threshold
-- v0.4 — per-vendor daily budgets, export to OpenTelemetry
+- v0.4 — global daily/weekly/monthly ceilings with an override dialog, hard-limit mode (this release)
+- Next — per-vendor budgets, export to OpenTelemetry
 - Homebrew tap once the CLI needs one
 
 ## License
