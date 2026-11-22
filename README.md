@@ -84,6 +84,16 @@ This is a **seatbelt, not a safe.**
 
 The value is forcing human-in-the-loop and leaving a trail, not resisting a determined local attacker. See [SECURITY.md](SECURITY.md).
 
+### Tiny charges you don't want to approve one by one
+
+Off by default. Turn it on deliberately:
+
+```bash
+spend-gate policy set --auto-under 0.05 --daily-cap 1.00
+```
+
+Now single charges at or below `0.05` pass without a prompt, as long as today's auto-approved total stays under `1.00`. Everything is still written to the ledger. The policy file is HMAC-signed with a key held in your login Keychain — editing the JSON by hand invalidates the signature, and an invalid signature means **nothing** is auto-approved.
+
 ## Environment variables
 
 | Variable | Purpose |
@@ -101,13 +111,16 @@ Dialog and Touch ID prompt follow the macOS UI language. Currently shipped: Engl
 spend-gate doctor          # can this machine enforce approval?
 spend-gate approve --amount 0.01 --vendor demo --purpose "smoke test"
 spend-gate audit --tail 20
+spend-gate verify                    # hash chain + Keychain anchor
+spend-gate policy show|set --auto-under 0.05 --daily-cap 1.00
 ```
 
 ## Roadmap
 
 - v0.1 — two gates, audit trail, i18n (this release)
 - v0.2 — budget envelopes for batch spending, reserve/settle, hash-chained ledger (`spend-gate verify`)
-- v0.3 — Keychain-anchored ledger head so truncation and rollback are detectable, per-call auto-approve threshold
+- v0.3 — Keychain-anchored ledger head, per-call auto-approve threshold (this release)
+- v0.4 — per-vendor daily budgets, export to OpenTelemetry
 - Homebrew tap once the CLI needs one
 
 ## License

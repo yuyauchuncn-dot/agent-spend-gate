@@ -32,6 +32,7 @@ from dataclasses import dataclass, field, asdict
 
 from . import gate
 from .ledger import Ledger
+from . import keychain
 
 ROOT = "~/.spend-gate"
 ENVELOPES = os.path.join(ROOT, "envelopes")
@@ -232,8 +233,38 @@ def open_envelope(max_amount: float, currency: str = "CNY", vendor: str = "",
     _ledger().append({"event": "open", "envelope": env.id, "vendor": vendor,
                       "currency": currency, "amount": max_amount,
                       "expires_at": env.expires_at, "purpose": purpose})
+    # 人工刚刚批准过，此刻把链头锚进 Keychain——这是唯一可信的参照点。
+    anchor_ledger()
     return env
 
 
+def anchor_ledger() -> str | None:
+    """把当前链头写入 Keychain。只在人类刚批准过的时刻调用。"""
+    if not keychain.available():
+        return None
+    tail = _ledger().tail_hash()
+    try:
+        keychain.set_anchor(tail)
+        return tail
+    except keychain.KeychainError:
+        return None
+
+
 def verify_ledger() -> tuple[bool, str]:
-    return _ledger().verify()
+    """校验哈希链，并与 Keychain 锚点比对。
+
+    链能自洽但尾部比锚点短 → 有人把记录截断了（回滚），判失败。
+    Keychain 不可用时退回纯链校验，并在说明里标明「未比对锚点」。
+    """
+    ok, detail = _ledger().verify()
+    if not ok:
+        return ok, detail
+    if not keychain.available():
+        return True, detail + " [no keychain, anchor not checked]"
+    anchor = keychain.get_anchor()
+    tail = _ledger().tail_hash()
+    if anchor is None:
+        return True, detail + " [no anchor yet]"
+    if anchor == tail:
+        return True, detail + " [anchor ok]"
+    return False, f"tail {tail[:12]}… does not match anchored {anchor[:12]}… (truncated or rewritten)"

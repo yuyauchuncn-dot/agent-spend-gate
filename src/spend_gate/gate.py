@@ -28,7 +28,7 @@ import uuid
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 
-from . import audit, auth, i18n
+from . import audit, auth, i18n, policy
 
 BYPASS_ENV = "SPEND_GATE_BYPASS"
 
@@ -112,6 +112,12 @@ def require_approval(amount, currency: str = "CNY", vendor: str = "",
               "this must never be set in production.", file=sys.stderr)
         return Approval(id=aid, ts="", amount=amount, currency=currency, vendor=vendor,
                         purpose=purpose, quantity=quantity, method="bypass")
+
+    # 小额免打扰：单笔低于阈值且当日免批额度没超，直接放行，但仍记账。
+    if policy.can_auto_approve(amount, currency):
+        audit.record({**base, "result": "approved", "method": "auto"}, strict=False)
+        return Approval(id=aid, ts=_now_iso(), amount=amount, currency=currency,
+                        vendor=vendor, purpose=purpose, quantity=quantity, method="auto")
 
     if sys.platform != "darwin":
         audit.record({**base, "result": "denied", "method": "unknown",

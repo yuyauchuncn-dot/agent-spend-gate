@@ -18,8 +18,10 @@ This module raises the cost of an agent acting on its own and leaves an audit tr
 
 - **Authentication method is not observable.** `LocalAuthentication` does not reveal whether the user used Touch ID or typed a password, so audit entries record `method: "unknown"`.
 - **Two logs, different guarantees.** `audit.jsonl` records approval decisions and is append-only by convention only. `ledger.jsonl` records money movements and is hash-chained, so edits and deletions of existing rows are detectable. Neither resists a same-user attacker who rewrites the tail.
-- **Ledger integrity is local.** The hash chain detects edits and deletions of existing rows. It cannot detect a rewrite of everything after the last trusted anchor, because there is no trusted local time source. A Keychain-anchored head is planned for 0.3.
-- **Envelope policy files are writable by the same user.** `~/.spend-gate/envelopes/*.json` uses mode-independent JSON. An agent with the same privileges can edit them; the ledger will show an inconsistency only when the edit diverges from recorded events. Treat the envelope as an accounting mechanism, not a cryptographic lock.
+- **Ledger integrity.** The hash chain detects edits and deletions of existing rows. The head is anchored in your login Keychain and refreshed only when a human approves something, so a silent truncation or rollback shows up as a tail that no longer matches the anchor.
+- **The anchor is not hardware-backed.** Once your login Keychain is unlocked, a process running as you can still read and replace the anchor item. It raises the cost of tampering; it is not a TPM.
+- **Envelope files are writable by the same user.** `~/.spend-gate/envelopes/*.json` is accounting state, not a cryptographic lock. The ledger will show divergence only where recorded events disagree with the edited file.
+- **Auto-approve policy is signed, not protected.** `policy.json` carries an HMAC keyed from the Keychain; tampering invalidates it and disables auto-approval entirely. It does not stop someone who can read the key and re-sign.
 - **macOS only.** Notebooks without a biometric sensor fall back to the account password; machines without either fail closed.
 
 ## Reporting a vulnerability

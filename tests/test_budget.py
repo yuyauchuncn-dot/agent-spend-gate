@@ -16,6 +16,8 @@ def home(tmp_path, monkeypatch):
     monkeypatch.setenv("SPEND_GATE_HOME", str(tmp_path))
     monkeypatch.setattr(budget.gate, "require_approval",
                         lambda **kw: gate_approval(kw))
+    # 这些用例只测台账本身，锚点行为在 test_policy.py 里单独测。
+    monkeypatch.setattr(budget.keychain, "available", lambda: False)
     return tmp_path
 
 

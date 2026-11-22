@@ -7,7 +7,7 @@ import json
 import os
 import sys
 
-from . import audit, auth, budget, i18n
+from . import audit, auth, budget, i18n, keychain, policy
 from .gate import SpendNotApproved, require_approval
 
 
@@ -56,6 +56,25 @@ def cmd_envelope(a):
     return 0
 
 
+def cmd_policy(a):
+    if a.action == "show":
+        p, ok = policy.load()
+        print(json.dumps({"policy": p.__dict__, "signature_valid": ok,
+                          "keychain": keychain.available()},
+                         ensure_ascii=False, indent=1))
+        return 0 if ok else 1
+    p, _ = policy.load()
+    if a.auto_under is not None:
+        p.auto_approve_under = a.auto_under
+    if a.daily_cap is not None:
+        p.daily_cap = a.daily_cap
+    if a.currency:
+        p.currency = a.currency
+    policy.save(p)
+    print(json.dumps(p.__dict__, ensure_ascii=False, indent=1))
+    return 0
+
+
 def cmd_audit(a):
     path = audit.audit_path()
     if not os.path.exists(path):
@@ -97,6 +116,15 @@ def main(argv=None):
     en.add_argument("--ttl", type=float, default=24.0, help="hours")
     en.add_argument("--id", default="")
     en.set_defaults(func=cmd_envelope)
+
+    po = sub.add_parser("policy", help="show or set the auto-approve policy")
+    po.add_argument("action", choices=["show", "set"])
+    po.add_argument("--auto-under", type=float, default=None,
+                    help="auto-approve single charges at or below this amount (0 disables)")
+    po.add_argument("--daily-cap", type=float, default=None,
+                    help="max total auto-approved spend per day (0 = unlimited)")
+    po.add_argument("--currency", default=None)
+    po.set_defaults(func=cmd_policy)
 
     au = sub.add_parser("audit", help="print recent audit entries")
     au.add_argument("--tail", type=int, default=20)
