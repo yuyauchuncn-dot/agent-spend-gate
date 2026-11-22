@@ -60,6 +60,8 @@ def cmd_envelope(a):
 
 
 def cmd_policy(a):
+    if a.action == "load":
+        return cmd_policy_load(a)
     if a.action == "show":
         p, ok = policy.load()
         print(json.dumps({"policy": p.__dict__, "signature_valid": ok,

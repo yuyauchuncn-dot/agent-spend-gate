@@ -12,6 +12,7 @@ import re
 import sys
 
 # vendor → (SDK 导入/引用模式, 端点模式)
+# 只在「真调用」行周围 ±8 行里找 vendor，避免把注释里的品牌名算进来。
 VENDORS = {
     "openai":     (r"\bopenai\b|from\s+openai|require\(['\"]openai", r"api\.openai\.com"),
     "anthropic":  (r"\banthropic\b|from\s+anthropic", r"api\.anthropic\.com"),
@@ -24,6 +25,22 @@ VENDORS = {
 }
 
 EXTS = (".py", ".js", ".ts", ".mjs", ".cjs", ".go", ".rb", ".sh")
+
+# 真正发起网络请求的形状。只有这些才算「调用点」——光提到 vendor 名字
+# （注释、分支判断、品牌字符串）不算，否则一个 40 文件的仓库会报出 215 处，
+# 全是噪声，人就不看了。
+CALL_PATTERNS = [
+    r"requests\.(post|get|put|patch|delete)\(",
+    r"httpx\.(post|get|put|patch|delete)\(",
+    r"urlopen\(",
+    r"\.chat\.completions\.create\(",
+    r"\.messages\.create\(",
+    r"\.images\.generate\(",
+    r"\.audio\.speech\(",
+    r"subprocess\.run\(\[.*curl",
+    r"fetch\(",
+    r"axios\.(post|get)\(",
+]
 SKIP_DIRS = {"node_modules", ".git", ".venv", "venv", "dist", "build", "__pycache__", ".next"}
 
 
@@ -40,20 +57,24 @@ def scan(root):
             except Exception:
                 continue
             for i, line in enumerate(lines, 1):
-                for vendor, (sdk_pat, url_pat) in VENDORS.items():
-                    kind = None
-                    if re.search(url_pat, line, re.I):
-                        kind = "url"
-                    elif re.search(sdk_pat, line, re.I):
-                        kind = "sdk"
-                    if kind:
-                        hits.append({
-                            "file": os.path.relpath(path, root),
-                            "line": i,
-                            "vendor": vendor,
-                            "kind": kind,
-                            "snippet": line.strip()[:160],
-                        })
+                s = line.strip()
+                if s.startswith("#") or s.startswith("//"):
+                    continue
+                if not any(re.search(pat, s) for pat in CALL_PATTERNS):
+                    continue
+                blob = "\n".join(lines[max(0, i - 8):i + 4]).lower()
+                vendor = "unknown"
+                for v, (sdk_pat, url_pat) in VENDORS.items():
+                    if re.search(url_pat, blob, re.I) or re.search(sdk_pat, blob, re.I):
+                        vendor = v
+                        break
+                hits.append({
+                    "file": os.path.relpath(path, root),
+                    "line": i,
+                    "vendor": vendor,
+                    "kind": "call",
+                    "snippet": s[:160],
+                })
     return hits
 
 
