@@ -16,7 +16,7 @@ import os
 import time
 from dataclasses import dataclass, asdict, field
 
-from . import auth, keychain
+from . import auth, i18n, keychain
 from .ledger import Ledger
 
 ROOT = "~/.spend-gate"
@@ -64,7 +64,7 @@ def save(p: Policy, *, require_auth: bool = True) -> None:
     """写策略。默认必须先过系统认证——否则 agent 可以自己把阈值调到无限大，
     这个闸门就形同虚设。测试里显式传 require_auth=False。"""
     if require_auth:
-        res = auth.authenticate("Change the auto-approve spending policy", timeout=300)
+        res = auth.authenticate(i18n.Translator()("auth_reason_policy"), timeout=300)
         if not res.ok:
             raise PolicyNotApproved(f"policy change not approved: {res.reason}")
     key = keychain.get_or_create_policy_key()

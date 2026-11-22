@@ -17,5 +17,9 @@
   "hard_limit_title": "硬性预算上限",
   "hard_limit_body": "{vendor} 请求花费 {amount} {currency}，用途：{purpose}\n\n这会超出你的{period}硬性上限：\n{detail}\n\n批准会在审计日志里记为例外，任务可以继续。",
   "approve_once": "只批这一次",
-  "approve_period": "本{period}都放行"
+  "approve_period": "本{period}都放行",
+  "auth_reason_policy": "修改自动免批的花钱策略",
+  "envelope_cap_note": "（上限，实际总额可能更低）",
+  "envelope_cap_qty": "最多这么多",
+  "limit_detail": "{period}：{spent:.2f} + {pending:.2f} = {total:.2f} > {limit:.2f}"
 }

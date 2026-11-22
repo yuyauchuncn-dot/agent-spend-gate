@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0 — 2026-11-22
+
+- **Korean, German, French and Spanish** locales, alongside the existing English, Simplified Chinese, Traditional Chinese and Japanese. Cantonese maps to Traditional Chinese.
+- **No UI string is hardcoded any more.** The policy-change prompt, the envelope cap wording and the `day/week/month` labels inside the limit dialog all go through the locale files.
+- Limit amounts in the dialog are formatted consistently (`18.00 + 5.00 = 23.00 > 20.00`) instead of mixing `0.9` and `0.90`.
+- 69 tests, including key parity across all eight locales.
+
 ## 0.5.0 — 2026-11-22
 
 - **Per-vendor limits**: `--vendor dashscope --vendor-daily-limit 5`, prefix-matched with longest match winning.

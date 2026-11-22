@@ -137,7 +137,9 @@ spend-gate policy set --vendor openai --vendor-daily-limit 20
 
 ## Languages
 
-Dialog and Touch ID prompt follow the macOS UI language. Currently shipped: English, Simplified Chinese, Traditional Chinese, Japanese. Missing languages fall back to English. Add a file under `src/spend_gate/locales/` to contribute one — a test checks every locale has the same keys.
+Dialog, limit warning and Touch ID prompt all follow the macOS UI language. Shipped: English, Simplified Chinese, Traditional Chinese, Japanese, Korean, German, French, Spanish. Cantonese (`yue`) maps to Traditional Chinese. Anything else falls back to English.
+
+Every string that reaches a dialog lives in `src/spend_gate/locales/*.json`; a test fails if a locale is missing a key, so adding one is a matter of copying `en.json` and translating.
 
 ## CLI
 

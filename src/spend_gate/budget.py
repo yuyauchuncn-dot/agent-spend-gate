@@ -32,7 +32,7 @@ from dataclasses import dataclass, field, asdict
 
 from . import gate
 from .ledger import Ledger, default_ledger
-from . import keychain
+from . import i18n, keychain
 
 ROOT = "~/.spend-gate"
 ENVELOPES = os.path.join(ROOT, "envelopes")
@@ -231,10 +231,11 @@ def open_envelope(max_amount: float, currency: str = "CNY", vendor: str = "",
     """
     if max_amount <= 0:
         raise ValueError("max_amount must be positive")
+    t = i18n.Translator()
     gate.require_approval(
         amount=max_amount, currency=currency, vendor=vendor,
-        purpose=f"{purpose} (cap, actual total may be lower)".strip(),
-        quantity="up to this amount", timeout=timeout,
+        purpose=f"{purpose} {t('envelope_cap_note')}".strip(),
+        quantity=t("envelope_cap_qty"), timeout=timeout,
         record_ledger=False,   # 信封自己记实际花费，这里记 cap 会双重记账
     )
     env = Envelope(

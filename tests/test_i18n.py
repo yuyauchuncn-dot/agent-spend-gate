@@ -14,6 +14,11 @@ from spend_gate import i18n
     ("zh-CN", "zh-Hans"),
     ("zh", "zh-Hans"),
     ("ja-JP", "ja"),
+    ("ko-KR", "ko"),
+    ("de-AT", "de"),
+    ("fr-CA", "fr"),
+    ("es-419", "es"),
+    ("yue-Hant-HK", "zh-Hant"),
 ])
 def test_candidates_hit_supported(tag, want):
     cands = i18n._candidates(tag)
@@ -21,7 +26,7 @@ def test_candidates_hit_supported(tag, want):
 
 
 def test_resolve_picks_first_supported(monkeypatch):
-    monkeypatch.setattr(i18n, "detect_languages", lambda: ["fr-FR", "en-US"])
+    monkeypatch.setattr(i18n, "detect_languages", lambda: ["xx-YY", "en-US"])
     assert i18n.resolve() == "en"
 
 

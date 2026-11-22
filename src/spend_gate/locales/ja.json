@@ -17,5 +17,9 @@
   "hard_limit_title": "ハード上限",
   "hard_limit_body": "{vendor} が {amount} {currency} の支払いを要求しています。用途：{purpose}\n\n{period}のハード上限を超えます：\n{detail}\n\n承認すると監査ログに例外として記録され、処理を続行できます。",
   "approve_once": "今回だけ",
-  "approve_period": "この{period}は許可"
+  "approve_period": "この{period}は許可",
+  "auth_reason_policy": "自動承認の支出ポリシーを変更",
+  "envelope_cap_note": "（上限。実際の合計はもっと少ない場合があります）",
+  "envelope_cap_qty": "最大この金額まで",
+  "limit_detail": "{period}：{spent:.2f} + {pending:.2f} = {total:.2f} > {limit:.2f}"
 }

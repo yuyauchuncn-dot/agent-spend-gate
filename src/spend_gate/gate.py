@@ -89,9 +89,12 @@ def _confirm_dialog(t: i18n.Translator, amount: float, currency: str,
         b = breaches[0]   # 只显示最先击穿的那个周期，多个时用最紧的
         pd = t(f"period_{b.period}")
         key = "hard_limit" if hard else "over_limit"
+        detail = "; ".join(
+            t("limit_detail", period=t(f"period_{x.period.split(':')[0]}"),
+              spent=x.spent, pending=x.pending, total=x.total_after, limit=x.limit)
+            for x in breaches)
         body = t(f"{key}_body", vendor=vendor, amount=amount, currency=currency,
-                 purpose=purpose, period=pd,
-                 detail="; ".join(x.describe() for x in breaches))
+                 purpose=purpose, period=pd, detail=detail)
         title = t(f"{key}_title")
     else:
         body = t("dialog_body", vendor=vendor, amount=amount, currency=currency,

@@ -17,5 +17,9 @@
   "hard_limit_title": "硬性預算上限",
   "hard_limit_body": "{vendor} 請求花費 {amount} {currency}，用途：{purpose}\n\n這會超出你的{period}硬性上限：\n{detail}\n\n批准會在審計日誌裡記為例外，任務可以繼續。",
   "approve_once": "只批這一次",
-  "approve_period": "本{period}都放行"
+  "approve_period": "本{period}都放行",
+  "auth_reason_policy": "修改自動免批的花錢策略",
+  "envelope_cap_note": "（上限，實際總額可能更低）",
+  "envelope_cap_qty": "最多這麼多",
+  "limit_detail": "{period}：{spent:.2f} + {pending:.2f} = {total:.2f} > {limit:.2f}"
 }

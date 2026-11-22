@@ -14,7 +14,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOCALES = os.path.join(HERE, "locales")
 FALLBACK = "en"
-SUPPORTED = ("en", "zh-Hans", "zh-Hant", "ja")
+SUPPORTED = ("en", "zh-Hans", "zh-Hant", "ja", "ko", "de", "fr", "es")
 
 # 系统语言标签常带地区（en-JP、zh-Hans-CN、zh-Hant-HK）。
 # 先按完整标签找，再退到语言+文字，再退到语言本身。
@@ -24,6 +24,8 @@ def _candidates(tag: str) -> list[str]:
     out = [tag]
     if len(parts) >= 2 and len(parts[1]) == 4:      # zh-Hans-CN -> zh-Hans
         out.append("-".join(parts[:2]))
+    if parts[0] == "yue":          # 粤语用户读繁体
+        out.append("zh-Hant")
     if parts[0] == "zh":
         # 中文必须区分简繁；没有文字标签时按地区猜，猜不到用简体。
         if any(p in ("TW", "HK", "MO") for p in parts[1:]):
