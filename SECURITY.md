@@ -18,7 +18,8 @@ This module raises the cost of an agent acting on its own and leaves an audit tr
 
 - **Authentication method is not observable.** `LocalAuthentication` does not reveal whether the user used Touch ID or typed a password, so audit entries record `method: "unknown"`.
 - **Audit log integrity.** Entries are append-only by convention, not by enforcement. The log is a plain file writable by the same user the agent runs as. Future releases add a hash chain and a Keychain anchor so deletion or rollback can be detected — but a suffix rewrite after the most recent anchor cannot be prevented locally.
-- **No spend caps yet.** v0.1 gates every call. Per-call and per-period budgets are on the roadmap.
+- **Ledger integrity is local.** The hash chain detects edits and deletions of existing rows. It cannot detect a rewrite of everything after the last trusted anchor, because there is no trusted local time source. A Keychain-anchored head is planned for 0.3.
+- **Envelope policy files are writable by the same user.** `~/.spend-gate/envelopes/*.json` uses mode-independent JSON. An agent with the same privileges can edit them; the ledger will show an inconsistency only when the edit diverges from recorded events. Treat the envelope as an accounting mechanism, not a cryptographic lock.
 - **macOS only.** Notebooks without a biometric sensor fall back to the account password; machines without either fail closed.
 
 ## Reporting a vulnerability

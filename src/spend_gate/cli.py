@@ -7,7 +7,7 @@ import json
 import os
 import sys
 
-from . import audit, auth, i18n
+from . import audit, auth, budget, i18n
 from .gate import SpendNotApproved, require_approval
 
 
@@ -31,6 +31,28 @@ def cmd_approve(a):
         print(f"not approved: {e.reason}", file=sys.stderr)
         return 1
     print(json.dumps(ap.as_dict(), ensure_ascii=False, indent=1))
+    return 0
+
+
+def cmd_verify(_):
+    ok, detail = budget.verify_ledger()
+    print(("ok  " if ok else "BROKEN  ") + detail)
+    return 0 if ok else 1
+
+
+def cmd_envelope(a):
+    if a.action == "open":
+        env = budget.open_envelope(max_amount=a.max, currency=a.currency,
+                                   vendor=a.vendor, purpose=a.purpose,
+                                   ttl_hours=a.ttl)
+        print(json.dumps({"id": env.id, "max_amount": env.max_amount,
+                          "expires_at": env.expires_at}, ensure_ascii=False, indent=1))
+        return 0
+    env = budget._load(a.id)
+    print(json.dumps({"id": env.id, "max": env.max_amount, "spent": env.spent,
+                      "reserved": sum(env.reserved.values()),
+                      "remaining": env.remaining, "currency": env.currency,
+                      "vendor": env.vendor}, ensure_ascii=False, indent=1))
     return 0
 
 
@@ -62,6 +84,19 @@ def main(argv=None):
     ap.add_argument("--quantity", default="")
     ap.add_argument("--timeout", type=float, default=300.0)
     ap.set_defaults(func=cmd_approve)
+
+    v = sub.add_parser("verify", help="verify the hash chain of the spend ledger")
+    v.set_defaults(func=cmd_verify)
+
+    en = sub.add_parser("envelope", help="open or inspect a budget envelope")
+    en.add_argument("action", choices=["open", "status"])
+    en.add_argument("--max", type=float, default=10.0)
+    en.add_argument("--currency", default="CNY")
+    en.add_argument("--vendor", default="")
+    en.add_argument("--purpose", default="")
+    en.add_argument("--ttl", type=float, default=24.0, help="hours")
+    en.add_argument("--id", default="")
+    en.set_defaults(func=cmd_envelope)
 
     au = sub.add_parser("audit", help="print recent audit entries")
     au.add_argument("--tail", type=int, default=20)

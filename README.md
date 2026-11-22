@@ -49,6 +49,26 @@ client.chat.completions.create(...)
 
 Wrap it around **every** billable call. If you batch, call it once for the batch and pass the batch total.
 
+### When the total isn't known upfront
+
+Approve a **cap**, not an amount. Open an envelope: one Touch ID prompt for "up to 10 CNY", then every call inside it is accounted for without interrupting you.
+
+```python
+from spend_gate import open_envelope
+
+with open_envelope(max_amount=10.0, currency="CNY", vendor="openai",
+                   purpose="nightly summarisation", ttl_hours=24) as env:
+    for doc in docs:
+        rid = env.reserve(0.50)        # hold capacity before the call
+        cost = call_api(doc)           # actual cost, known only afterwards
+        env.settle(rid, cost)          # charge what it really cost
+
+# The envelope stops accepting charges when the cap or TTL is reached.
+# Call open_envelope again to ask a human for more.
+```
+
+`env.spend(x)` is the shortcut when you know the price. `env.reserve` / `env.settle` is for when you don't. An exception inside `reservation()` charges the held amount (conservative). Every event goes into a hash-chained ledger; `spend-gate verify` tells you if it has been edited.
+
 ## How it works
 
 1. **Cognitive gate** — an AppleScript dialog shows vendor, amount, purpose and quantity. The default button is *Cancel*, so hitting Return does not approve.
@@ -86,7 +106,8 @@ spend-gate audit --tail 20
 ## Roadmap
 
 - v0.1 — two gates, audit trail, i18n (this release)
-- v0.2 — budget envelopes for batch spending (`reserve` / `settle` / `release`), per-call and per-period caps with tamper-evident ledger
+- v0.2 — budget envelopes for batch spending, reserve/settle, hash-chained ledger (`spend-gate verify`)
+- v0.3 — Keychain-anchored ledger head so truncation and rollback are detectable, per-call auto-approve threshold
 - Homebrew tap once the CLI needs one
 
 ## License

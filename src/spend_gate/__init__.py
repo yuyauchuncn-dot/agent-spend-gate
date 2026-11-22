@@ -9,7 +9,9 @@
 没有 Touch ID 或密码，这行代码不会返回。
 """
 from .gate import Approval, SpendNotApproved, require_approval
-from . import auth, i18n
+from .budget import BudgetExceeded, Envelope, open_envelope, verify_ledger
+from . import auth, budget, i18n
 
-__all__ = ["require_approval", "Approval", "SpendNotApproved", "auth", "i18n"]
-__version__ = "0.1.0"
+__all__ = ["require_approval", "Approval", "SpendNotApproved", "BudgetExceeded",
+           "Envelope", "open_envelope", "verify_ledger", "auth", "budget", "i18n"]
+__version__ = "0.2.0"
