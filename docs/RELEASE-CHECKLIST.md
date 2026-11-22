@@ -62,12 +62,17 @@ python3 -m venv /tmp/sg-test && /tmp/sg-test/bin/pip install \
 
 Not a synthetic test — the repository this was built for.
 
-- [ ] Wrap the paid call sites (already done for `lib/voice.py`: 2 sites, batch mode)
-- [ ] Run one episode's narration with `approve_batch` — one dialog, then charges inside the envelope
-- [ ] `spend-gate audit` shows one approval plus the envelope charges
-- [ ] `spend-gate verify` passes
+✅ 2026-11-23, HSK1 "我的家", 49 sentences through ElevenLabs:
 
-Cost of this test: roughly 1.5 CNY for a 50-sentence episode. Budget for it.
+- ✅ Call sites wrapped (`lib/voice.py`, 2 sites, batch mode)
+- ✅ `approve_batch` → one dialog for the whole episode
+- ✅ 49 files, 126.2 s of audio, none shorter than 0.3 s
+- ✅ `spend-gate audit`: one approval of 1.23 CNY plus the envelope charges
+- ✅ `spend-gate verify`: 53 ledger rows, anchor row 52 ok, 2 envelopes reconciled
+
+Actual cost 1.25 CNY. One bug found: `round()` down made the envelope 1.23
+while per-sentence charges summed to 1.232, so the last sentence was
+refused. `approve_batch` now rounds up to the cent.
 
 ## E. Failure paths
 
