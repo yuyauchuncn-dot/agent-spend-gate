@@ -50,10 +50,13 @@ python3 -m venv /tmp/sg-test && /tmp/sg-test/bin/pip install \
 
 `--extra-index-url` is required: `pyobjc-framework-LocalAuthentication` is not on TestPyPI, and without the fallback pip fails resolving it.
 
-- [ ] Upload succeeds
-- [ ] Install from TestPyPI succeeds
-- [ ] `doctor` reports `auth backend: ok`
-- [ ] One real dialog from the TestPyPI build
+✅ 0.7.1 uploaded to TestPyPI and installed back from it:
+<https://test.pypi.org/project/agent-spend-gate/0.7.1/>
+
+- ✅ Upload succeeds
+- ✅ Install from TestPyPI succeeds
+- ✅ `doctor` reports `auth backend: ok`
+- ✅ One real dialog from the TestPyPI build (fingerprint accepted, audit written)
 
 ## D. Real workload
 
@@ -77,10 +80,12 @@ SPEND_GATE_BYPASS=true spend-gate approve --amount 1     # NOT bypassed (only li
 
 - [ ] Cancel the confirmation dialog → `SpendNotApproved`, exit 1
 - [ ] Cancel the fingerprint prompt → same
-- [ ] `--amount -5`, `nan`, `inf` → `ValueError`
+- ✅ `--amount -5`, `nan`, `inf`, `True`, `"2"` → `ValueError`
+- ✅ `SPEND_GATE_BYPASS=true` is not treated as bypass (only literal `"1"` is)
 - [ ] Over a limit with `hard_limit` off → three-button dialog; "Allow for this period" suppresses later prompts
 - [ ] Over a limit with `hard_limit` on → same dialog, `hard_override` in the audit
 - [ ] Lock the Keychain, then `spend-gate verify` → reports the anchor as unchecked rather than passing silently
+- ✅ `verify` passes on a real ledger after live approvals
 - [ ] Tamper with one row in `ledger.jsonl` → `verify` fails with `hash mismatch`
 - [ ] Truncate the ledger below the anchor row → `verify` fails with `truncated`
 - [ ] Change your macOS UI language to German or Korean → dialog text follows
