@@ -1,0 +1,11 @@
+{
+  "dialog_title": "花钱审批",
+  "dialog_body": "{vendor} 请求花费 {amount} {currency}，用途：{purpose}\n数量：{quantity}\n\n批准这次花费吗？",
+  "dialog_approve": "批准",
+  "dialog_cancel": "取消",
+  "auth_reason": "批准向 {vendor} 支付 {amount} {currency}",
+  "denied_cancelled": "花费已取消。",
+  "denied_unavailable": "这台机器无法进行系统身份验证。",
+  "denied_timeout": "身份验证超时。",
+  "denied_error": "身份验证失败。"
+}

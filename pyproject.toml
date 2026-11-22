@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agent-spend-gate"
+version = "0.1.0"
+description = "A human-in-the-loop spending gate for AI agents on macOS - no Touch ID or password approval, no paid API call."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.11"
+authors = [{ name = "Derek Yu" }]
+keywords = ["ai-agents", "spending", "touch-id", "human-in-the-loop", "macos", "safety"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: MacOS X",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Security",
+  "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+  "pyobjc-framework-LocalAuthentication>=13; sys_platform == 'darwin'",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "build", "twine"]
+
+[project.scripts]
+spend-gate = "spend_gate.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/yuyauchuncn-dot/agent-spend-gate"
+Issues = "https://github.com/yuyauchuncn-dot/agent-spend-gate/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/spend_gate"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

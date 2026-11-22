@@ -1,0 +1,11 @@
+{
+  "dialog_title": "花錢審批",
+  "dialog_body": "{vendor} 請求花費 {amount} {currency}，用途：{purpose}\n數量：{quantity}\n\n批准這次花費嗎？",
+  "dialog_approve": "批准",
+  "dialog_cancel": "取消",
+  "auth_reason": "批准向 {vendor} 支付 {amount} {currency}",
+  "denied_cancelled": "花費已取消。",
+  "denied_unavailable": "這台機器無法進行系統身份驗證。",
+  "denied_timeout": "身份驗證逾時。",
+  "denied_error": "身份驗證失敗。"
+}

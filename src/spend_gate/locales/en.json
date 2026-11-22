@@ -1,0 +1,11 @@
+{
+  "dialog_title": "Spending approval",
+  "dialog_body": "{vendor} requests {amount} {currency} for: {purpose}\nQuantity: {quantity}\n\nApprove this spending?",
+  "dialog_approve": "Approve",
+  "dialog_cancel": "Cancel",
+  "auth_reason": "Approve spending {amount} {currency} to {vendor}",
+  "denied_cancelled": "Spending was cancelled.",
+  "denied_unavailable": "System authentication is not available on this machine.",
+  "denied_timeout": "Authentication timed out.",
+  "denied_error": "Authentication failed."
+}
