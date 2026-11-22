@@ -6,7 +6,7 @@ import time
 
 import pytest
 
-from spend_gate import budget, keychain, policy
+from spend_gate import auth, budget, keychain, policy
 
 KEY = b"\x01" * 32
 
@@ -14,6 +14,9 @@ KEY = b"\x01" * 32
 @pytest.fixture(autouse=True)
 def env(tmp_path, monkeypatch):
     monkeypatch.setenv("SPEND_GATE_HOME", str(tmp_path))
+    # 测试绝不能真弹认证窗口：在 CI 上会卡到超时，在本地会打断人。
+    monkeypatch.setattr(auth, "authenticate",
+                        lambda *a, **k: auth.AuthResult(True, "unknown"))
     monkeypatch.setattr(keychain, "available", lambda: True)
     monkeypatch.setattr(keychain, "get_or_create_policy_key", lambda: KEY)
     store = {}

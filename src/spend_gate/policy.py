@@ -16,7 +16,7 @@ import os
 import time
 from dataclasses import dataclass, asdict
 
-from . import keychain
+from . import auth, keychain
 from .ledger import Ledger
 
 ROOT = "~/.spend-gate"
@@ -28,6 +28,10 @@ def _home() -> str:
 
 def policy_path() -> str:
     return os.path.join(_home(), "policy.json")
+
+
+class PolicyNotApproved(RuntimeError):
+    """改策略需要人类认证。没通过就不改。"""
 
 
 @dataclass
@@ -49,7 +53,13 @@ def _mac(p: Policy, key: bytes) -> str:
     return hmac.new(key, _canonical(p), hashlib.sha256).hexdigest()
 
 
-def save(p: Policy) -> None:
+def save(p: Policy, *, require_auth: bool = True) -> None:
+    """写策略。默认必须先过系统认证——否则 agent 可以自己把阈值调到无限大，
+    这个闸门就形同虚设。测试里显式传 require_auth=False。"""
+    if require_auth:
+        res = auth.authenticate("Change the auto-approve spending policy", timeout=300)
+        if not res.ok:
+            raise PolicyNotApproved(f"policy change not approved: {res.reason}")
     key = keychain.get_or_create_policy_key()
     data = {"policy": asdict(p), "hmac": _mac(p, key)}
     path = policy_path()
@@ -92,9 +102,8 @@ def can_auto_approve(amount: float, currency: str = "CNY") -> bool:
     if amount > p.auto_approve_under + 1e-12:
         return False
     if p.daily_cap > 0:
-        led = Ledger(os.environ.get("SPEND_GATE_LEDGER_PATH")
-                     or os.path.join(_home(), "ledger.jsonl"))
-        used = led.totals(since=_today_start(), currency=currency)
+        from .ledger import default_ledger
+        used = default_ledger().totals(since=_today_start(), currency=currency)
         if used + amount > p.daily_cap + 1e-12:
             return False
     return True

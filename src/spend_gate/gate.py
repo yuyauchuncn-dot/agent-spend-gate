@@ -29,6 +29,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 
 from . import audit, auth, i18n, policy
+from .ledger import default_ledger
 
 BYPASS_ENV = "SPEND_GATE_BYPASS"
 
@@ -115,7 +116,12 @@ def require_approval(amount, currency: str = "CNY", vendor: str = "",
 
     # 小额免打扰：单笔低于阈值且当日免批额度没超，直接放行，但仍记账。
     if policy.can_auto_approve(amount, currency):
-        audit.record({**base, "result": "approved", "method": "auto"}, strict=False)
+        # 免批不等于不记账：daily_cap 就是从这条台账算出来的。
+        # 审计和台账任一个写不进去都不放行，和人工批准路径同一条规矩。
+        audit.record({**base, "result": "approved", "method": "auto"}, strict=True)
+        default_ledger().append({"event": "spend", "vendor": vendor, "currency": currency,
+                                 "amount": amount, "note": "auto-approved",
+                                 "purpose": purpose})
         return Approval(id=aid, ts=_now_iso(), amount=amount, currency=currency,
                         vendor=vendor, purpose=purpose, quantity=quantity, method="auto")
 

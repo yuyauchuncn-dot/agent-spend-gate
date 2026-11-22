@@ -58,7 +58,11 @@ def authenticate(reason: str, timeout: float = 300.0) -> AuthResult:
         return AuthResult(False, "unknown", "unavailable")
 
     ctx = LAContext.new()
-    ok, err = ctx.canEvaluatePolicy_error_(LAPolicyDeviceOwnerAuthentication, None)
+    try:
+        ok, err = ctx.canEvaluatePolicy_error_(LAPolicyDeviceOwnerAuthentication, None)
+    except Exception:
+        # PyObjC 在这里抛异常时，调用方只 catch SpendNotApproved 会意外崩溃。
+        return AuthResult(False, "unknown", "unavailable")
     if not ok:
         return AuthResult(False, "unknown", "unavailable")
 

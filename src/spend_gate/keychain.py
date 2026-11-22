@@ -33,11 +33,18 @@ def available() -> bool:
     return subprocess.run(["which", "security"], capture_output=True).returncode == 0
 
 
+ERR_NOT_FOUND = 44   # security CLI 的 errSecItemNotFound
+
+
 def _read(account: str) -> str | None:
     r = subprocess.run(["security", "find-generic-password", "-a", account,
                         "-s", SERVICE, "-w"], capture_output=True, text=True)
-    if r.returncode != 0:
+    if r.returncode == ERR_NOT_FOUND:
         return None
+    if r.returncode != 0:
+        # 被拒绝/钥匙串锁着，和「不存在」是两回事。混为一谈会导致
+        # get_or_create_policy_key 静默覆盖旧密钥，把现有策略签名作废。
+        raise KeychainError(r.stderr.strip() or f"security exit {r.returncode}")
     return r.stdout.strip() or None
 
 
@@ -57,7 +64,11 @@ def set_anchor(value: str) -> None:
 
 
 def get_or_create_policy_key() -> bytes:
-    """策略签名密钥。首次生成时写入 Keychain，之后每次读回来。"""
+    """策略签名密钥。首次生成时写入 Keychain，之后每次读回来。
+
+    读失败（不是「不存在」）时直接抛，绝不生成新密钥覆盖旧的——
+    那会静默让现有策略签名失效。
+    """
     existing = _read(POLICY_ACCOUNT)
     if existing:
         return bytes.fromhex(existing)

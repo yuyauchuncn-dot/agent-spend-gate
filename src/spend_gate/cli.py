@@ -35,8 +35,11 @@ def cmd_approve(a):
 
 
 def cmd_verify(_):
-    ok, detail = budget.verify_ledger()
-    print(("ok  " if ok else "BROKEN  ") + detail)
+    ok1, d1 = budget.verify_ledger()
+    ok2, d2 = budget.verify_envelopes()
+    ok = ok1 and ok2
+    print(f"ledger   : {'ok' if ok1 else 'BROKEN'}  {d1}")
+    print(f"envelopes: {'ok' if ok2 else 'BROKEN'}  {d2}")
     return 0 if ok else 1
 
 

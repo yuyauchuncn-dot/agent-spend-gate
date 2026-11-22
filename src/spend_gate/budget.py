@@ -31,7 +31,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field, asdict
 
 from . import gate
-from .ledger import Ledger
+from .ledger import Ledger, default_ledger
 from . import keychain
 
 ROOT = "~/.spend-gate"
@@ -109,6 +109,9 @@ class Envelope:
         return rid
 
     def _settle_locked(self, rid: str, actual: float, note: str = "") -> None:
+        # 过期信封不再接受任何扣款，结算也不例外；已预留的额度按约定记账。
+        if time.time() > self.expires_at:
+            raise BudgetExceeded(f"envelope {self.id} expired before settle")
         if rid not in self.reserved:
             raise KeyError(f"unknown reservation {rid}")
         held = self.reserved.pop(rid)
@@ -156,6 +159,16 @@ class Envelope:
             cur._release_locked(reservation, note)
             _copy_into(self, cur)
 
+    # ---- 上下文管理器：with open_envelope(...) as env: ... ----
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        # 信封本身就是状态，没有需要提交/回滚的资源；这里只把剩余预留记进台账。
+        for rid in list(self.reserved):
+            self.release(rid, "envelope closed")
+        return False
+
     @contextmanager
     def reservation(self, amount: float, note: str = ""):
         """with env.reservation(0.5) as r: ...; 正常退出按 r.actual 结算，
@@ -177,6 +190,8 @@ def _save(env: Envelope) -> None:
     tmp = p + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(asdict(env), f, ensure_ascii=False, indent=1)
+        f.flush()
+        os.fsync(f.fileno())   # os.replace 保证原子，但不保证落盘
     os.replace(tmp, p)
 
 
@@ -259,6 +274,41 @@ def anchor_ledger() -> str | None:
         return None
 
 
+def verify_envelopes() -> tuple[bool, str]:
+    """核对每个信封文件里的 spent 是否等于台账里该信封的累计。
+
+    信封 JSON 本身没有签名，同用户的 agent 可以改。改过之后台账会露馅：
+    文件说花了 0，台账记了 5，对不上。
+    """
+    d = os.path.join(_root(), "envelopes")
+    if not os.path.isdir(d):
+        return True, "no envelopes"
+    rows = _ledger()._rows()
+    sums: dict[str, float] = {}
+    for r in rows:
+        if r.get("event") in ("spend", "settle") and r.get("envelope"):
+            sums[r["envelope"]] = sums.get(r["envelope"], 0.0) + float(r.get("amount", 0))
+    bad = []
+    for name in sorted(os.listdir(d)):
+        if not name.endswith(".json"):
+            continue
+        try:
+            env = json.load(open(os.path.join(d, name), encoding="utf-8"))
+        except Exception:
+            bad.append(f"{name}: unreadable")
+            continue
+        eid = env.get("id", name[:-5])
+        want = round(sums.get(eid, 0.0), 6)
+        got = round(float(env.get("spent", 0.0)), 6)
+        if abs(want - got) > 1e-6:
+            bad.append(f"{eid}: file says {got}, ledger says {want}")
+        if float(env.get("max_amount", 0)) > 1e6:
+            bad.append(f"{eid}: max_amount {env.get('max_amount')} looks edited")
+    if bad:
+        return False, "; ".join(bad)
+    return True, f"{len(sums)} envelopes match ledger"
+
+
 def verify_ledger() -> tuple[bool, str]:
     """校验哈希链，并确认 Keychain 里的检查点仍然吻合。
 
@@ -277,6 +327,10 @@ def verify_ledger() -> tuple[bool, str]:
     anchor = keychain.get_anchor()
     if not anchor:
         return True, detail + " [no anchor yet]"
+    if ":" not in anchor:
+        # 0.3.0 早期写的锚点只有哈希，没有行号。升级后不当作篡改，
+        # 只是校验不了截断；下一次人工批准会写成新格式。
+        return True, detail + " [legacy anchor, re-approve to enable truncation checks]"
     try:
         seq_s, want_hash = anchor.split(":", 1)
         want_seq = int(seq_s)

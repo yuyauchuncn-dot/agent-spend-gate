@@ -13,6 +13,10 @@ from spend_gate.auth import AuthResult
 def tmp_audit(tmp_path, monkeypatch):
     p = tmp_path / "audit.jsonl"
     monkeypatch.setenv("SPEND_GATE_AUDIT_PATH", str(p))
+    # 必须隔离：否则 policy.load() 会读真实的 ~/.spend-gate/policy.json，
+    # 在开过免批的机器上测试结果会随本机状态变化。
+    monkeypatch.setenv("SPEND_GATE_HOME", str(tmp_path))
+    monkeypatch.setenv("SPEND_GATE_NO_KEYCHAIN", "1")
     monkeypatch.delenv("SPEND_GATE_BYPASS", raising=False)
     return p
 

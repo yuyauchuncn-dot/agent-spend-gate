@@ -92,7 +92,7 @@ Off by default. Turn it on deliberately:
 spend-gate policy set --auto-under 0.05 --daily-cap 1.00
 ```
 
-Now single charges at or below `0.05` pass without a prompt, as long as today's auto-approved total stays under `1.00`. Everything is still written to the ledger. The policy file is HMAC-signed with a key held in your login Keychain — editing the JSON by hand invalidates the signature, and an invalid signature means **nothing** is auto-approved.
+Now single charges at or below `0.05` pass without a prompt, as long as today's total spend stays under `1.00`. Each one is written to the ledger, so the daily cap is enforced from the same numbers you can audit. Changing the policy requires Touch ID or your password — an agent cannot raise its own limit. The policy file is HMAC-signed with a key held in your login Keychain — editing the JSON by hand invalidates the signature, and an invalid signature means **nothing** is auto-approved.
 
 ## Environment variables
 
@@ -100,6 +100,9 @@ Now single charges at or below `0.05` pass without a prompt, as long as today's 
 |---|---|
 | `SPEND_GATE_AUDIT_PATH` | Override the audit log path (tests, enterprise deployments). |
 | `SPEND_GATE_BYPASS=1` | **Skips both gates.** Only for automated tests. Setting this in production removes the gate; each use is recorded as `bypassed`. Any other value (e.g. `true`) is ignored. |
+| `SPEND_GATE_HOME` | Override `~/.spend-gate` (envelopes, policy, ledger). |
+| `SPEND_GATE_LEDGER_PATH` | Override the ledger path specifically. |
+| `SPEND_GATE_NO_KEYCHAIN=1` | Run without a Keychain: anchor checks are skipped and reported as such. Policy changes still require authentication. |
 
 ## Languages
 
@@ -117,9 +120,9 @@ spend-gate policy show|set --auto-under 0.05 --daily-cap 1.00
 
 ## Roadmap
 
-- v0.1 — two gates, audit trail, i18n (this release)
+- v0.1 — two gates, audit trail, i18n
 - v0.2 — budget envelopes for batch spending, reserve/settle, hash-chained ledger (`spend-gate verify`)
-- v0.3 — Keychain-anchored ledger head, per-call auto-approve threshold (this release)
+- v0.3 — Keychain-anchored ledger head, per-call auto-approve threshold
 - v0.4 — per-vendor daily budgets, export to OpenTelemetry
 - Homebrew tap once the CLI needs one
 

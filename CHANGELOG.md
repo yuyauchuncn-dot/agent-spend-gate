@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.3.1 — 2026-11-22
+
+Security and correctness fixes from an external review.
+
+**The gate could be opened without a human.** `policy.save()` and
+`spend-gate policy set` raised the auto-approve threshold with no
+authentication, which defeats the entire point. Both now require Touch ID
+or the account password.
+
+- Auto-approved charges are written to the ledger. Without this the daily
+  cap was always computed from an empty ledger and never fired.
+- `Ledger.append` holds a file lock across read-compute-write; two workers
+  appending concurrently used to produce the same `seq` and a chain that
+  failed verification during normal use.
+- `Envelope` is a context manager, as the README always claimed.
+- `settle()` refuses to run on an expired envelope; `_save` fsyncs before
+  the atomic replace.
+- `verify` reconciles every envelope's `spent` against the ledger, so a
+  hand-edited envelope file shows up as a mismatch.
+- Keychain reads distinguish "not found" from "denied"; a locked keychain
+  no longer causes the policy key to be silently regenerated.
+- `canEvaluatePolicy` failures are converted to a denied result instead of
+  escaping as a raw PyObjC exception.
+- Tests isolate `SPEND_GATE_HOME` and mock authentication; previously they
+  read the real `~/.spend-gate` and would have hung on a fingerprint prompt.
+
 ## 0.3.0 — 2026-11-22
 
 - **Keychain anchor**: the ledger head is written to the login Keychain whenever a human approves something. `spend-gate verify` now fails if the tail no longer matches the anchor, catching silent truncation and rollback that a pure hash chain cannot see.
