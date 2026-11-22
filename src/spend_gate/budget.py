@@ -239,21 +239,34 @@ def open_envelope(max_amount: float, currency: str = "CNY", vendor: str = "",
 
 
 def anchor_ledger() -> str | None:
-    """把当前链头写入 Keychain。只在人类刚批准过的时刻调用。"""
+    """把当前链尾记成检查点：存「第几行 + 该行哈希」。
+
+    只在人类刚批准过的时刻调用。存 seq 而不是只存哈希，是因为之后正常的
+    spend 会让链变长——校验要确认的是「这一行还在、没被改」，不是「它是最后一行」。
+    """
     if not keychain.available():
         return None
-    tail = _ledger().tail_hash()
+    led = _ledger()
+    rows = led._rows()
+    if not rows:
+        return None
+    rec = rows[-1]
+    value = f"{rec['seq']}:{rec['hash']}"
     try:
-        keychain.set_anchor(tail)
-        return tail
+        keychain.set_anchor(value)
+        return value
     except keychain.KeychainError:
         return None
 
 
 def verify_ledger() -> tuple[bool, str]:
-    """校验哈希链，并与 Keychain 锚点比对。
+    """校验哈希链，并确认 Keychain 里的检查点仍然吻合。
 
-    链能自洽但尾部比锚点短 → 有人把记录截断了（回滚），判失败。
+    锚点记的是「第 N 行 + 那一行的哈希」。校验时：
+      - 文件里找不到第 N 行 → 有人把台账截短了（回滚）
+      - 第 N 行还在但哈希变了 → 那一行被改过
+      - 吻合 → 通过；锚点之后新增的行由哈希链自己保证
+    正常使用会不断追加新行，锚点不会因此失效——它只是不指向最后一行了。
     Keychain 不可用时退回纯链校验，并在说明里标明「未比对锚点」。
     """
     ok, detail = _ledger().verify()
@@ -262,9 +275,18 @@ def verify_ledger() -> tuple[bool, str]:
     if not keychain.available():
         return True, detail + " [no keychain, anchor not checked]"
     anchor = keychain.get_anchor()
-    tail = _ledger().tail_hash()
-    if anchor is None:
+    if not anchor:
         return True, detail + " [no anchor yet]"
-    if anchor == tail:
-        return True, detail + " [anchor ok]"
-    return False, f"tail {tail[:12]}… does not match anchored {anchor[:12]}… (truncated or rewritten)"
+    try:
+        seq_s, want_hash = anchor.split(":", 1)
+        want_seq = int(seq_s)
+    except ValueError:
+        return False, f"malformed anchor {anchor[:24]!r}"
+    rows = _ledger()._rows()
+    if len(rows) < want_seq:
+        return False, (f"ledger has {len(rows)} rows but anchor points at row {want_seq} "
+                       f"(truncated)")
+    got = rows[want_seq - 1]["hash"]
+    if got != want_hash:
+        return False, f"row {want_seq} hash changed (was {want_hash[:12]}…, now {got[:12]}…)"
+    return True, detail + f" [anchor row {want_seq} ok]"

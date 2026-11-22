@@ -72,24 +72,37 @@ def test_currency_mismatch_blocks_auto():
 
 def test_open_envelope_sets_anchor(env):
     budget.open_envelope(max_amount=1.0)
-    assert env.get("a") == budget._ledger().tail_hash()
+    rows = budget._ledger()._rows()
+    assert env.get("a") == f"{rows[-1]['seq']}:{rows[-1]['hash']}"
 
 
 def test_verify_ok_when_anchor_matches(env):
     budget.open_envelope(max_amount=1.0)
     ok, detail = budget.verify_ledger()
-    assert ok and "anchor ok" in detail
+    assert ok and "anchor row 1 ok" in detail
+
+
+def test_normal_growth_after_anchor_still_ok(env):
+    """锚点之后正常追加花费，不应被误判成篡改。"""
+    env_obj = budget.open_envelope(max_amount=1.0)
+    env_obj.spend(0.1)
+    env_obj.spend(0.1)
+    ok, detail = budget.verify_ledger()
+    assert ok, detail
 
 
 def test_verify_detects_truncation(env):
-    budget.open_envelope(max_amount=1.0)
-    l1 = budget._ledger()
-    l1.append({"event": "spend", "amount": 0.1, "vendor": "", "currency": "CNY"})
-    # 攻击者把台账回滚到锚点之前的状态：链自洽，但尾部比锚点短。
-    os.remove(os.path.join(os.environ["SPEND_GATE_HOME"], "ledger.jsonl"))
-    l1.append({"event": "open", "amount": 1.0, "vendor": "", "currency": "CNY"})
+    env_obj = budget.open_envelope(max_amount=1.0)
+    env_obj.spend(0.1)
+    anchor_row = int(env["a"].split(":")[0])
+    # 把台账截到锚点之前，再补一条自洽的旧行：链本身没问题，但锚点那行没了。
+    p = os.path.join(os.environ["SPEND_GATE_HOME"], "ledger.jsonl")
+    keep = budget._ledger()._rows()[: anchor_row - 1]
+    with open(p, "w", encoding="utf-8") as f:
+        for r in keep:
+            f.write(json.dumps(r, ensure_ascii=False, sort_keys=True) + "\n")
     ok, detail = budget.verify_ledger()
-    assert not ok and "does not match anchored" in detail
+    assert not ok and "truncated" in detail
 
 
 def test_verify_without_keychain_says_so(env, monkeypatch):
