@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.1 — 2026-11-23
+
+- **[Case study](docs/CASE-STUDY.md)**: a real adoption on a 40-file repository, from the incident that started it to the batch-approval problem that only showed up when imagining daily use. Includes the wrong numbers (215 call sites reported, 3 real) because that is the part worth reading.
+- The setup skill is now linked from the top of the README, with its own `skill/README.md`. It stays in this repository rather than a separate one: it calls this CLI, so the two must version together.
+
 ## 0.7.0 — 2026-11-22
 
 - `spend-gate policy load policy.json` — apply a whole policy in one call, so a whitelist for five vendors costs one fingerprint instead of five.

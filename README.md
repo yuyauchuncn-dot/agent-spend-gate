@@ -2,6 +2,8 @@
 
 **Your AI agent is about to spend money. This makes it ask you first.**
 
+> **Adopting this in an existing repo?** [`skill/`](skill/) scans for paid API calls, asks once which vendors should stay behind a prompt, and wraps the call sites. One fingerprint for the whole policy. [Read the case study](docs/CASE-STUDY.md) — 215 apparent call sites turned out to be 3 real ones.
+
 One line before the paid call. A dialog says who gets paid and how much. Then macOS asks for your fingerprint or password. If either step fails, the call never happens.
 
 ```
@@ -151,7 +153,15 @@ Dialog, limit warning and Touch ID prompt follow the macOS UI language: English,
 
 ## Wrapping an existing codebase
 
-There is a skill in [`skill/`](skill/) that scans a repository for paid API calls, asks which vendors you want to keep prompting for, and wraps the call sites. See [skill/SKILL.md](skill/SKILL.md).
+The skill lives in [`skill/`](skill/) and ships with this repository — no separate install.
+
+```bash
+python3 skill/scan_paid_calls.py /path/to/repo     # what actually costs money
+```
+
+Then point your agent at [`skill/SKILL.md`](skill/SKILL.md). It asks four questions, writes the policy, applies it in one authenticated call, and wraps the call sites. It also requires the agent to list what it did **not** wrap and why.
+
+Why it is bundled rather than a separate repository: the skill depends on this CLI's flags, so the two must version together, and the files are small enough that a second repo would only add a way for them to drift.
 
 ## License
 
