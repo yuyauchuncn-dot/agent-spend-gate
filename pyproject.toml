@@ -9,7 +9,7 @@ description = "A human-in-the-loop spending gate for AI agents on macOS - no Tou
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.11"
-authors = [{ name = "Derek Yu" }]
+authors = [{ name = "Derek Yu", email = "267515304+yuyauchuncn-dot@users.noreply.github.com" }]
 keywords = ["ai-agents", "spending", "touch-id", "human-in-the-loop", "macos", "safety"]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -34,7 +34,9 @@ spend-gate = "spend_gate.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/yuyauchuncn-dot/agent-spend-gate"
+Repository = "https://github.com/yuyauchuncn-dot/agent-spend-gate"
 Issues = "https://github.com/yuyauchuncn-dot/agent-spend-gate/issues"
+Changelog = "https://github.com/yuyauchuncn-dot/agent-spend-gate/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/spend_gate"]
