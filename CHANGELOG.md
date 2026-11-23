@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.2 — 2026-11-23
+
+- Fix the period button reading "Allow for this daily" (and the Chinese
+  "本每日都放行"). Each period now has its own full phrase in all eight
+  locales. Caught in a real dialog, not by tests — key-parity checks do not
+  know that "daily" does not belong inside "Allow for this ___".
+
 ## 0.7.1 — 2026-11-23
 
 - **[Case study](docs/CASE-STUDY.md)**: a real adoption on a 40-file repository, from the incident that started it to the batch-approval problem that only showed up when imagining daily use. Includes the wrong numbers (215 call sites reported, 3 real) because that is the part worth reading.
